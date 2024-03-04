@@ -1,14 +1,26 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import Editor from "@monaco-editor/react";
 import axiosInstance from "@/axios";
 import { AxiosError } from "axios";
 
-const CodeEditor: React.FC = () => {
-  const [code, setCode] = useState("// Write your code here");
+interface PageProps {
+  initialCode: string;
+}
+
+const CodeEditor: React.FC<PageProps> = ({ initialCode }) => {
+  const [code, setCode] = useState(initialCode);
   const [stdout, setStdout] = useState(""); // For standard output
   const [stderr, setStderr] = useState(""); // For error messages
+
+  useEffect(() => {
+    const storedCode = localStorage.getItem("code");
+    if (storedCode) {
+      setCode(storedCode);
+      localStorage.removeItem("code"); // Clear the code from local storage
+    }
+  }, []);
 
   const handleEditorChange = (value: string | undefined) => {
     setCode(value || "");

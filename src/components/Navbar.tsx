@@ -12,9 +12,9 @@ const Navbar: React.FC = () => (
         <Link href="/about" passHref>
           <span className="mr-5 hover:text-gray-400 cursor-pointer">About</span>
         </Link>
-        <Link href="/features" passHref>
+        <Link href="/snippets" passHref>
           <span className="mr-5 hover:text-gray-400 cursor-pointer">
-            Features
+            Snippets
           </span>
         </Link>
         <Link href="/editor" passHref>
