@@ -8,16 +8,16 @@ import {
 
 interface TreeProps {
   item: IFileFolder;
-  addNewItem: (parentId: string | null, newItem: IFileFolder) => void;
   isHovering: string;
   setIsHovering: Dispatch<SetStateAction<string>>;
+  setFiles: Dispatch<SetStateAction<IFileFolder[]>>;
 }
 
 const TreeItem: React.FC<TreeProps> = ({
   item,
-  addNewItem,
   isHovering,
   setIsHovering,
+  setFiles,
 }) => {
   const [isOpen, setIsOpen] = useState(false);
 
@@ -76,6 +76,21 @@ const TreeItem: React.FC<TreeProps> = ({
       setIsAddingFolder(false);
       setNewItemName("");
     }
+  };
+
+  const addNewItem = (parentId: string | null, newItem: IFileFolder) => {
+    const updateTree = (items: IFileFolder[]): IFileFolder[] => {
+      return items.map((item) => {
+        if (item.id === parentId) {
+          return { ...item, children: [...item.children, newItem] };
+        } else if (item.children.length > 0) {
+          return { ...item, children: updateTree(item.children) };
+        }
+        return item;
+      });
+    };
+
+    setFiles((currentFiles) => updateTree(currentFiles));
   };
 
   return (
@@ -140,9 +155,9 @@ const TreeItem: React.FC<TreeProps> = ({
             <TreeItem
               key={child.id}
               item={child}
-              addNewItem={addNewItem}
               isHovering={isHovering}
               setIsHovering={setIsHovering}
+              setFiles={setFiles}
             />
           ))}
         </div>

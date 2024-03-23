@@ -1,10 +1,10 @@
-import { useState } from "react";
+import { Dispatch, SetStateAction, useState } from "react";
 import TreeItem from "./TreeItem";
 
 const FileFolderTree: React.FC<{
   items: IFileFolder[];
-  addNewItem: (parentId: string | null, newItem: IFileFolder) => void;
-}> = ({ items, addNewItem }) => {
+  setFiles: Dispatch<SetStateAction<IFileFolder[]>>;
+}> = ({ items, setFiles }) => {
   const [isHovering, setIsHovering] = useState("");
   return (
     <div className="p-4">
@@ -12,7 +12,7 @@ const FileFolderTree: React.FC<{
         <TreeItem
           key={item.id}
           item={item}
-          addNewItem={addNewItem}
+          setFiles={setFiles}
           isHovering={isHovering}
           setIsHovering={setIsHovering}
         />

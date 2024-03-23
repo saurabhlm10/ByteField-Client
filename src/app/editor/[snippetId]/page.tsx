@@ -107,21 +107,6 @@ const Page: FC<PageProps> = ({ params }) => {
   const [code, setCode] = useState("");
   const [name, setName] = useState("");
 
-  const addNewItem = (parentId: string | null, newItem: IFileFolder) => {
-    const updateTree = (items: IFileFolder[]): IFileFolder[] => {
-      return items.map((item) => {
-        if (item.id === parentId) {
-          return { ...item, children: [...item.children, newItem] };
-        } else if (item.children.length > 0) {
-          return { ...item, children: updateTree(item.children) };
-        }
-        return item;
-      });
-    };
-
-    setFiles((currentFiles) => updateTree(currentFiles));
-  };
-
   const getSnippet = async (snippetId: string) => {
     try {
       const response = await axiosInstance.get("/snippet/" + snippetId);
@@ -147,7 +132,7 @@ const Page: FC<PageProps> = ({ params }) => {
       <h1 className="text-xl font-semibold my-4">{name}</h1>
       <div className="flex">
         <aside className="w-1/4 bg-gray-700 p-4 text-white">
-          <FileFolderTree items={files} addNewItem={addNewItem} />
+          <FileFolderTree items={files} setFiles={setFiles} />
         </aside>
         <div className="flex-1">
           {code && (
