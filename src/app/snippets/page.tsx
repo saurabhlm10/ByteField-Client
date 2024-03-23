@@ -5,7 +5,7 @@ import CodeSnippets from "@/components/CodeSnippets";
 import { apiErrorHandler } from "@/utils/api-error-handler.util";
 import { useEffect, useState } from "react";
 
-const page = () => {
+const Page = () => {
   const [snippets, setSnippets] = useState([]);
   const getAllSnippets = async () => {
     try {
@@ -29,4 +29,4 @@ const page = () => {
   return <CodeSnippets snippets={snippets} />;
 };
 
-export default page;
+export default Page;

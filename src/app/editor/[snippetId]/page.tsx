@@ -11,7 +11,7 @@ interface PageProps {
   };
 }
 
-const page: FC<PageProps> = ({ params }) => {
+const Page: FC<PageProps> = ({ params }) => {
   const [code, setCode] = useState("");
   const [name, setName] = useState("");
 
@@ -50,4 +50,4 @@ const page: FC<PageProps> = ({ params }) => {
   );
 };
 
-export default page;
+export default Page;
