@@ -1,6 +1,5 @@
-import CodeEditor from "@/components/CodeEditor";
-import Image from "next/image";
+import CreateSnippet from "@/components/CreateSnippet";
 
 export default function Home() {
-  return <></>;
+  return <CreateSnippet />;
 }

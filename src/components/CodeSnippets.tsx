@@ -4,10 +4,7 @@ import React from "react";
 import CodeSnippetPreview from "./CodeSnippetPreview";
 
 interface CodeSnippetsProps {
-  snippets: {
-    name: string;
-    code: string;
-  }[];
+  snippets: Snippet[];
 }
 
 const CodeSnippets: React.FC<CodeSnippetsProps> = ({ snippets }) => {

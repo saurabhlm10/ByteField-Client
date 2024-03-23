@@ -4,10 +4,7 @@ import { useRouter } from "next/navigation";
 import React from "react";
 
 interface CodeSnippetPreviewProps {
-  snippet: {
-    name: string;
-    code: string;
-  };
+  snippet: Snippet;
 }
 
 const CodeSnippetPreview: React.FC<CodeSnippetPreviewProps> = ({ snippet }) => {
@@ -16,8 +13,7 @@ const CodeSnippetPreview: React.FC<CodeSnippetPreviewProps> = ({ snippet }) => {
   const previewCode = snippet.code.split("\n").slice(0, 5).join("\n");
 
   const handleClick = () => {
-    localStorage.setItem("code", snippet.code);
-    router.push("/editor");
+    router.push("/editor/" + snippet.id);
   };
 
   return (

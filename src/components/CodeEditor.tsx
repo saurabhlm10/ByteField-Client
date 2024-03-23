@@ -1,26 +1,19 @@
 "use client";
-
-import React, { useEffect, useState } from "react";
+import React, { Dispatch, SetStateAction, useEffect, useState } from "react";
 import Editor from "@monaco-editor/react";
 import axiosInstance from "@/axios";
 import { AxiosError } from "axios";
+import { apiErrorHandler } from "@/utils/api-error-handler.util";
 
 interface PageProps {
-  initialCode: string;
+  code: string;
+  setCode: Dispatch<SetStateAction<string>>;
+  snippetId: string;
 }
 
-const CodeEditor: React.FC<PageProps> = ({ initialCode }) => {
-  const [code, setCode] = useState(initialCode);
-  const [stdout, setStdout] = useState(""); // For standard output
-  const [stderr, setStderr] = useState(""); // For error messages
-
-  useEffect(() => {
-    const storedCode = localStorage.getItem("code");
-    if (storedCode) {
-      setCode(storedCode);
-      localStorage.removeItem("code"); // Clear the code from local storage
-    }
-  }, []);
+const CodeEditor: React.FC<PageProps> = ({ code, setCode, snippetId }) => {
+  const [stdout, setStdout] = useState("");
+  const [stderr, setStderr] = useState("");
 
   const handleEditorChange = (value: string | undefined) => {
     setCode(value || "");
@@ -28,14 +21,10 @@ const CodeEditor: React.FC<PageProps> = ({ initialCode }) => {
 
   const executeCode = async () => {
     try {
-      const response = await axiosInstance.post("/execute", {
-        code,
-      });
-
+      const response = await axiosInstance.post("/execute", { code });
       console.log(response.data);
       setStdout(response.data || "No output");
       stderr && setStderr("");
-      // Display execution result to the user
     } catch (error: any) {
       setStdout("");
       if (error instanceof AxiosError) {
@@ -44,37 +33,54 @@ const CodeEditor: React.FC<PageProps> = ({ initialCode }) => {
       console.error("Error executing code:", error);
       return setStdout(error.message);
     }
-    // Handle error
+  };
+
+  const saveCode = async () => {
+    try {
+      const response = await axiosInstance.put("/snippet/" + snippetId, {
+        code,
+      });
+    } catch (error) {
+      apiErrorHandler(error);
+    }
   };
 
   return (
-    <>
-      <button
-        onClick={executeCode}
-        className="order-2 md:order-1 w-full md:w-auto self-end mb-2 p-2 bg-blue-500 text-white"
-      >
-        Run Code
-      </button>
-      <div className="flex flex-col md:flex-row">
-        <div className="order-1 md:order-2 flex-1">
-          <Editor
-            height="70vh"
-            defaultLanguage="javascript"
-            defaultValue={code}
-            onChange={handleEditorChange}
-            theme="vs-dark"
-          />
+    <div className="bg-gray-900 text-white min-h-screen flex flex-col">
+      <div className="container mx-auto py-8">
+        <div className="mx-auto flex justify-center gap-4">
+          <button
+            onClick={executeCode}
+            className="block bg-green-500 hover:bg-green-700 text-white font-bold py-2 px-4 rounded-md shadow-md mb-4"
+          >
+            Run Code
+          </button>
+          <button
+            onClick={saveCode}
+            className="block bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-md shadow-md mb-4"
+          >
+            Save Code
+          </button>
         </div>
-        <div
-          className="order-3 md:w-1/3 bg-gray-800 text-white p-4 overflow-auto"
-          style={{ height: "70vh" }}
-        >
-          <h3 className="text-lg font-bold">Terminal</h3>
-          <pre>{stdout}</pre>
-          <pre className="text-red-500">{stderr}</pre>
+        <div className="flex flex-col md:flex-row">
+          <div className="md:w-2/3 mb-4 md:mb-0 md:mr-4">
+            <Editor
+              height="70vh"
+              defaultLanguage="javascript"
+              defaultValue={code}
+              onChange={handleEditorChange}
+              theme="vs-dark"
+              className="rounded-md shadow-md"
+            />
+          </div>
+          <div className="md:w-1/3 bg-gray-800 text-white p-4 rounded-md shadow-md overflow-auto">
+            <h3 className="text-lg font-bold mb-2">Terminal</h3>
+            <pre className="whitespace-pre-wrap">{stdout}</pre>
+            <pre className="text-red-500 whitespace-pre-wrap">{stderr}</pre>
+          </div>
         </div>
       </div>
-    </>
+    </div>
   );
 };
 
