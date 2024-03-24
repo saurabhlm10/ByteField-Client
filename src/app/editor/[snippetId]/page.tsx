@@ -96,6 +96,9 @@ const initialFiles = [
         isFolder: false,
         parent: "1",
         children: [],
+        content: `function helloWorld() {
+  console.log('Hello, world!');
+}`,
       },
     ],
   },
@@ -132,7 +135,11 @@ const Page: FC<PageProps> = ({ params }) => {
       <h1 className="text-xl font-semibold my-4">{name}</h1>
       <div className="flex">
         <aside className="w-1/4 bg-gray-700 p-4 text-white">
-          <FileFolderTree items={files} setFiles={setFiles} />
+          <FileFolderTree
+            items={files}
+            setFiles={setFiles}
+            onFileSelect={setCode}
+          />
         </aside>
         <div className="flex-1">
           {code && (

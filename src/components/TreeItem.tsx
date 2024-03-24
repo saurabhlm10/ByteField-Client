@@ -11,6 +11,7 @@ interface TreeProps {
   isHovering: string;
   setIsHovering: Dispatch<SetStateAction<string>>;
   setFiles: Dispatch<SetStateAction<IFileFolder[]>>;
+  onFileSelect: Dispatch<SetStateAction<string>>;
 }
 
 const TreeItem: React.FC<TreeProps> = ({
@@ -18,6 +19,7 @@ const TreeItem: React.FC<TreeProps> = ({
   isHovering,
   setIsHovering,
   setFiles,
+  onFileSelect,
 }) => {
   const [isOpen, setIsOpen] = useState(false);
 
@@ -93,6 +95,12 @@ const TreeItem: React.FC<TreeProps> = ({
     setFiles((currentFiles) => updateTree(currentFiles));
   };
 
+  const handleFileClick = useCallback(() => {
+    if (!item.isFolder) {
+      onFileSelect(item.content || "// Write your code here");
+    }
+  }, [item, onFileSelect]);
+
   return (
     <div className="tree-item">
       <div className="flex justify-between items-center">
@@ -124,7 +132,9 @@ const TreeItem: React.FC<TreeProps> = ({
             )}
           </>
         ) : (
-          <span>{item.name}</span>
+          <span onClick={handleFileClick} className="cursor-pointer w-full">
+            {item.name}
+          </span>
         )}
       </div>
       {isOpen && item.isFolder && (
@@ -158,6 +168,7 @@ const TreeItem: React.FC<TreeProps> = ({
               isHovering={isHovering}
               setIsHovering={setIsHovering}
               setFiles={setFiles}
+              onFileSelect={onFileSelect}
             />
           ))}
         </div>

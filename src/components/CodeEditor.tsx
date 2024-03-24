@@ -22,7 +22,6 @@ const CodeEditor: React.FC<PageProps> = ({ code, setCode, snippetId }) => {
   const executeCode = async () => {
     try {
       const response = await axiosInstance.post("/execute", { code });
-      console.log(response.data);
       setStdout(response.data || "No output");
       stderr && setStderr("");
     } catch (error: any) {
@@ -66,6 +65,7 @@ const CodeEditor: React.FC<PageProps> = ({ code, setCode, snippetId }) => {
           <div className="md:w-2/3 mb-4 md:mb-0 md:mr-4">
             <Editor
               height="70vh"
+              value={code}
               defaultLanguage="javascript"
               defaultValue={code}
               onChange={handleEditorChange}
