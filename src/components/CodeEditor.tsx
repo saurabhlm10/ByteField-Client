@@ -9,14 +9,21 @@ interface PageProps {
   code: string;
   setCode: Dispatch<SetStateAction<string>>;
   snippetId: string;
+  updateFileContent: (content: string) => void;
 }
 
-const CodeEditor: React.FC<PageProps> = ({ code, setCode, snippetId }) => {
+const CodeEditor: React.FC<PageProps> = ({
+  code,
+  setCode,
+  snippetId,
+  updateFileContent,
+}) => {
   const [stdout, setStdout] = useState("");
   const [stderr, setStderr] = useState("");
 
   const handleEditorChange = (value: string | undefined) => {
     setCode(value || "");
+    updateFileContent(value || "");
   };
 
   const executeCode = async () => {

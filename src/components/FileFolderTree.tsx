@@ -4,7 +4,7 @@ import TreeItem from "./TreeItem";
 const FileFolderTree: React.FC<{
   items: IFileFolder[];
   setFiles: Dispatch<SetStateAction<IFileFolder[]>>;
-  onFileSelect: Dispatch<SetStateAction<string>>;
+  onFileSelect: (fileId: string, fileContent: string) => void;
 }> = ({ items, setFiles, onFileSelect }) => {
   const [isHovering, setIsHovering] = useState("");
   return (

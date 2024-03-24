@@ -110,6 +110,30 @@ const Page: FC<PageProps> = ({ params }) => {
   const [code, setCode] = useState("");
   const [name, setName] = useState("");
 
+  const [currentFileId, setCurrentFileId] = useState("");
+
+  const updateFileContentById = (fileId: string, newContent: string) => {
+    setFiles((currentFiles) => {
+      const updateContent = (items: IFileFolder[]): IFileFolder[] => {
+        return items.map((file) => {
+          if (file.id === fileId) {
+            return { ...file, content: newContent };
+          } else if (file.isFolder) {
+            return { ...file, children: updateContent(file.children) };
+          } else {
+            return file;
+          }
+        });
+      };
+      return updateContent(currentFiles);
+    });
+  };
+
+  const onFileSelect = (fileId: string, fileContent: string) => {
+    setCurrentFileId(fileId);
+    setCode(fileContent);
+  };
+
   const getSnippet = async (snippetId: string) => {
     try {
       const response = await axiosInstance.get("/snippet/" + snippetId);
@@ -138,7 +162,7 @@ const Page: FC<PageProps> = ({ params }) => {
           <FileFolderTree
             items={files}
             setFiles={setFiles}
-            onFileSelect={setCode}
+            onFileSelect={onFileSelect}
           />
         </aside>
         <div className="flex-1">
@@ -147,6 +171,9 @@ const Page: FC<PageProps> = ({ params }) => {
               code={code}
               setCode={setCode}
               snippetId={params.snippetId}
+              updateFileContent={(newContent) =>
+                updateFileContentById(currentFileId, newContent)
+              }
             />
           )}
         </div>

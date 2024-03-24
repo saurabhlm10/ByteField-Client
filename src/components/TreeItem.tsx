@@ -11,7 +11,7 @@ interface TreeProps {
   isHovering: string;
   setIsHovering: Dispatch<SetStateAction<string>>;
   setFiles: Dispatch<SetStateAction<IFileFolder[]>>;
-  onFileSelect: Dispatch<SetStateAction<string>>;
+  onFileSelect: (fileId: string, fileContent: string) => void;
 }
 
 const TreeItem: React.FC<TreeProps> = ({
@@ -97,7 +97,7 @@ const TreeItem: React.FC<TreeProps> = ({
 
   const handleFileClick = useCallback(() => {
     if (!item.isFolder) {
-      onFileSelect(item.content || "// Write your code here");
+      onFileSelect(item.id, item.content || "// Write your code here");
     }
   }, [item, onFileSelect]);
 
