@@ -1,3 +1,4 @@
+import axiosInstance from "@/axios";
 import {
   Dispatch,
   MouseEvent,
@@ -12,6 +13,7 @@ interface TreeProps {
   setIsHovering: Dispatch<SetStateAction<string>>;
   setFiles: Dispatch<SetStateAction<IFileFolder[]>>;
   onFileSelect: (fileId: string, fileContent: string) => void;
+  projectId: string;
 }
 
 const TreeItem: React.FC<TreeProps> = ({
@@ -20,6 +22,7 @@ const TreeItem: React.FC<TreeProps> = ({
   setIsHovering,
   setFiles,
   onFileSelect,
+  projectId,
 }) => {
   const [isOpen, setIsOpen] = useState(false);
 
@@ -60,7 +63,7 @@ const TreeItem: React.FC<TreeProps> = ({
     setNewItemName(e.target.value);
   };
 
-  const handleNewItemCreation = (
+  const handleNewItemCreation = async (
     isFolder: boolean,
     e: React.KeyboardEvent<HTMLInputElement>
   ) => {
@@ -73,10 +76,23 @@ const TreeItem: React.FC<TreeProps> = ({
         children: [],
       };
 
-      addNewItem(item.id, newItem);
-      setIsAddingFile(false);
-      setIsAddingFolder(false);
-      setNewItemName("");
+      try {
+        const body = {
+          name: newItemName,
+          isFolder: isFolder,
+          parentId: item.id,
+        };
+
+        const response = await axiosInstance.post(
+          "/file-folder/" + projectId,
+          body
+        );
+
+        addNewItem(item.id, newItem);
+        setIsAddingFile(false);
+        setIsAddingFolder(false);
+        setNewItemName("");
+      } catch (error) {}
     }
   };
 
@@ -85,7 +101,7 @@ const TreeItem: React.FC<TreeProps> = ({
       return items.map((item) => {
         if (item.id === parentId) {
           return { ...item, children: [...item.children, newItem] };
-        } else if (item.children.length > 0) {
+        } else if (item.children && item.children.length > 0) {
           return { ...item, children: updateTree(item.children) };
         }
         return item;
@@ -169,6 +185,7 @@ const TreeItem: React.FC<TreeProps> = ({
               setIsHovering={setIsHovering}
               setFiles={setFiles}
               onFileSelect={onFileSelect}
+              projectId={projectId}
             />
           ))}
         </div>

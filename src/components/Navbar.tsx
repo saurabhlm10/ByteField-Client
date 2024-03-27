@@ -38,6 +38,11 @@ const Navbar: React.FC = () => (
             Editor
           </span>
         </Link>
+        <Link href="/projects" passHref>
+          <span className="mr-5 hover:text-white transition duration-300 cursor-pointer">
+            Projects
+          </span>
+        </Link>
         <Link href="/login" passHref>
           <span className="mr-5 hover:text-white transition duration-300 cursor-pointer">
             Login

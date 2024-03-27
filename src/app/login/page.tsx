@@ -22,7 +22,7 @@ const LoginForm = () => {
     try {
       await axiosInstance.post("/auth/login", formData);
 
-      router.push("/snippets");
+      router.push("/projects");
     } catch (error) {
       apiErrorHandler(error);
     }

@@ -5,7 +5,8 @@ const FileFolderTree: React.FC<{
   items: IFileFolder[];
   setFiles: Dispatch<SetStateAction<IFileFolder[]>>;
   onFileSelect: (fileId: string, fileContent: string) => void;
-}> = ({ items, setFiles, onFileSelect }) => {
+  projectId: string;
+}> = ({ items, setFiles, onFileSelect, projectId }) => {
   const [isHovering, setIsHovering] = useState("");
   return (
     <div className="p-4">
@@ -17,6 +18,7 @@ const FileFolderTree: React.FC<{
           isHovering={isHovering}
           setIsHovering={setIsHovering}
           onFileSelect={onFileSelect}
+          projectId={projectId}
         />
       ))}
     </div>

@@ -8,14 +8,14 @@ import { apiErrorHandler } from "@/utils/api-error-handler.util";
 interface PageProps {
   code: string;
   setCode: Dispatch<SetStateAction<string>>;
-  snippetId: string;
+  projectId: string;
   updateFileContent: (content: string) => void;
 }
 
 const CodeEditor: React.FC<PageProps> = ({
   code,
   setCode,
-  snippetId,
+  projectId,
   updateFileContent,
 }) => {
   const [stdout, setStdout] = useState("");
@@ -43,7 +43,7 @@ const CodeEditor: React.FC<PageProps> = ({
 
   const saveCode = async () => {
     try {
-      const response = await axiosInstance.put("/snippet/" + snippetId, {
+      const response = await axiosInstance.put("/snippet/" + projectId, {
         code,
       });
     } catch (error) {
