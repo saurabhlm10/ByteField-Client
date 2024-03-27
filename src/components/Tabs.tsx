@@ -1,18 +1,17 @@
+import { OpenFiles } from "@/app/editor/[projectId]/page";
 import React, { Dispatch, FC, SetStateAction } from "react";
 
 interface PageProps {
   fileTabs: Set<IFileFolder>;
-  setOpenFiles: Dispatch<SetStateAction<Set<IFileFolder>>>;
-  activeFile: IFileFolder;
-  setActiveFile: Dispatch<SetStateAction<IFileFolder | null>>;
+  openFiles: OpenFiles;
+  setOpenFiles: Dispatch<SetStateAction<OpenFiles>>;
   onFileSelect: (file: IFileFolder) => void;
 }
 
 const Tabs: FC<PageProps> = ({
   fileTabs,
+  openFiles,
   setOpenFiles,
-  activeFile,
-  setActiveFile,
   onFileSelect,
 }) => {
   return (
@@ -23,7 +22,7 @@ const Tabs: FC<PageProps> = ({
             key={index}
             className={`flex flex-row cursor-pointer items-center gap-2 text-sm px-2 py-1 border-t-[1px]  border-b-0" +
               ${
-                tab.id === activeFile.id
+                tab.id === openFiles.active?.id
                   ? "bg-[#1E1E1E] border-t-blue-300"
                   : "bg-slate-800 border-t-transparent"
               }`}
@@ -43,14 +42,17 @@ const Tabs: FC<PageProps> = ({
                   className="leading-3"
                   onClick={() => {
                     setOpenFiles((prevOpenFiles) => {
-                      const newOpenFiles = new Set(prevOpenFiles);
+                      const newOpenFiles = new Set(prevOpenFiles.open);
                       newOpenFiles.delete(tab);
-                      setActiveFile(
+                      const activeFile =
                         newOpenFiles.size > 0
                           ? Array.from(newOpenFiles)[0]
-                          : null
-                      );
-                      return newOpenFiles;
+                          : null;
+                      return {
+                        ...prevOpenFiles,
+                        active: activeFile,
+                        open: newOpenFiles,
+                      };
                     });
                   }}
                 >

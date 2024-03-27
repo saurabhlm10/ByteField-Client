@@ -19,13 +19,20 @@ interface PageProps {
   };
 }
 
+export interface OpenFiles {
+  active: IFileFolder | null;
+  open: Set<IFileFolder>;
+}
+
 const Page: FC<PageProps> = ({ params }) => {
   const [files, setFiles] = useState<IFileFolder[]>([]);
 
   const [name, setName] = useState("");
 
-  const [activeFile, setActiveFile] = useState<IFileFolder | null>(null);
-  const [openFiles, setOpenFiles] = useState<Set<IFileFolder>>(new Set());
+  const [openFiles, setOpenFiles] = useState<OpenFiles>({
+    active: null,
+    open: new Set(),
+  });
 
   const updateFileContentById = (fileId: string, newContent: string) => {
     setFiles((currentFiles) => {
@@ -44,7 +51,7 @@ const Page: FC<PageProps> = ({ params }) => {
     });
   };
   const onFileSelect = (file: IFileFolder) => {
-    setActiveFile(file);
+    setOpenFiles((prevOpenFiles) => ({ ...prevOpenFiles, active: file }));
   };
 
   const getProject = async (id: string) => {
@@ -93,17 +100,16 @@ const Page: FC<PageProps> = ({ params }) => {
           />
         </aside>
         <div className="flex-1">
-          {activeFile?.content && (
+          {openFiles.active?.content && (
             <CodeEditor
               projectId={params.projectId}
               openFiles={openFiles}
               setOpenFiles={setOpenFiles}
               updateFileContent={(newContent) =>
-                updateFileContentById(activeFile.id, newContent)
-              }
-              activeFile={activeFile as IFileFolder}
-              setActiveFile={
-                setActiveFile as Dispatch<SetStateAction<IFileFolder>>
+                updateFileContentById(
+                  openFiles.active?.id as string,
+                  newContent
+                )
               }
               onFileSelect={onFileSelect}
             />

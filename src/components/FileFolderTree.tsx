@@ -1,11 +1,12 @@
 import { Dispatch, SetStateAction, useState } from "react";
 import TreeItem from "./TreeItem";
+import { OpenFiles } from "@/app/editor/[projectId]/page";
 
 const FileFolderTree: React.FC<{
   items: IFileFolder[];
   setFiles: Dispatch<SetStateAction<IFileFolder[]>>;
   onFileSelect: (file: IFileFolder) => void;
-  setOpenFiles: Dispatch<SetStateAction<Set<IFileFolder>>>;
+  setOpenFiles: Dispatch<SetStateAction<OpenFiles>>;
   projectId: string;
 }> = ({ items, setFiles, onFileSelect, setOpenFiles, projectId }) => {
   const [isHovering, setIsHovering] = useState("");

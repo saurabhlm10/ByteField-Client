@@ -5,14 +5,13 @@ import axiosInstance from "@/axios";
 import { AxiosError } from "axios";
 import { apiErrorHandler } from "@/utils/api-error-handler.util";
 import Tabs from "./Tabs";
+import { OpenFiles } from "@/app/editor/[projectId]/page";
 
 interface PageProps {
   projectId: string;
-  openFiles: Set<IFileFolder>;
-  setOpenFiles: Dispatch<SetStateAction<Set<IFileFolder>>>;
+  openFiles: OpenFiles;
+  setOpenFiles: Dispatch<SetStateAction<OpenFiles>>;
   updateFileContent: (content: string) => void;
-  activeFile: IFileFolder;
-  setActiveFile: Dispatch<SetStateAction<IFileFolder>>;
   onFileSelect: (file: IFileFolder) => void;
 }
 
@@ -21,31 +20,31 @@ const CodeEditor: React.FC<PageProps> = ({
   openFiles,
   setOpenFiles,
   updateFileContent,
-  activeFile,
-  setActiveFile,
   onFileSelect,
 }) => {
   const [stdout, setStdout] = useState("");
   const [stderr, setStderr] = useState("");
 
   const handleEditorChange = (value: string | undefined) => {
-    setActiveFile((prevActiveFile) => {
-      return {
-        ...prevActiveFile,
-        content: value || "",
-        isSaved: prevActiveFile.content !== value,
-      };
-    });
-
     setOpenFiles((prevOpenFiles) => {
-      const newOpenFiles = new Set(prevOpenFiles);
+      const newOpenFiles = new Set(prevOpenFiles.open);
+
+      const activeFile = prevOpenFiles.active;
+
       newOpenFiles.forEach((file) => {
-        if (file.id === activeFile.id) {
+        if (file.id === openFiles.active?.id) {
           file.content = value || "";
           file.isSaved = file.content !== value;
         }
       });
-      return newOpenFiles;
+
+      if (!activeFile) return prevOpenFiles;
+
+      return {
+        ...prevOpenFiles,
+        active: activeFile,
+        open: newOpenFiles,
+      };
     });
 
     updateFileContent(value || "");
@@ -54,7 +53,7 @@ const CodeEditor: React.FC<PageProps> = ({
   const executeCode = async () => {
     try {
       const response = await axiosInstance.post("/execute", {
-        code: activeFile.content,
+        code: openFiles.active?.content,
       });
       setStdout(response.data || "No output");
       stderr && setStderr("");
@@ -71,9 +70,9 @@ const CodeEditor: React.FC<PageProps> = ({
   const saveCode = async () => {
     try {
       const response = await axiosInstance.put(
-        "/file-folder/" + projectId + "/" + activeFile.id,
+        "/file-folder/" + projectId + "/" + openFiles.active?.id,
         {
-          content: activeFile.content,
+          content: openFiles.active?.content,
         }
       );
     } catch (error) {
@@ -86,21 +85,14 @@ const CodeEditor: React.FC<PageProps> = ({
     if ((event.ctrlKey || event.metaKey) && event.key === "s") {
       event.preventDefault(); // Prevent the browser's default save dialog
 
-      setActiveFile((prevActiveFile) => {
-        setOpenFiles((prevOpenFiles) => {
-          const newOpenFiles = new Set(prevOpenFiles);
-          newOpenFiles.forEach((file) => {
-            if (file.id === prevActiveFile.id) {
-              file.isSaved = true;
-            }
-          });
-          return newOpenFiles;
+      setOpenFiles((prevOpenFiles) => {
+        const newOpenFiles = new Set(prevOpenFiles.open);
+        newOpenFiles.forEach((file) => {
+          if (file.id === prevOpenFiles.active?.id) {
+            file.isSaved = true;
+          }
         });
-
-        return {
-          ...prevActiveFile,
-          isSaved: true,
-        };
+        return { ...prevOpenFiles, open: newOpenFiles };
       });
 
       saveCode();
@@ -129,19 +121,16 @@ const CodeEditor: React.FC<PageProps> = ({
             onKeyDown={handleKeyDown}
           >
             <Tabs
-              fileTabs={openFiles}
+              fileTabs={openFiles.open}
+              openFiles={openFiles}
               setOpenFiles={setOpenFiles}
-              activeFile={activeFile}
-              setActiveFile={
-                setActiveFile as Dispatch<SetStateAction<IFileFolder | null>>
-              }
               onFileSelect={onFileSelect}
             />
             <Editor
               height="70vh"
-              value={activeFile.content}
+              value={openFiles.active?.content}
               defaultLanguage="javascript"
-              defaultValue={activeFile.content}
+              defaultValue={openFiles.active?.content}
               onChange={handleEditorChange}
               theme="vs-dark"
               className="rounded-md shadow-md"

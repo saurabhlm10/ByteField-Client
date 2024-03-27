@@ -1,3 +1,4 @@
+import { OpenFiles } from "@/app/editor/[projectId]/page";
 import axiosInstance from "@/axios";
 import {
   Dispatch,
@@ -13,7 +14,7 @@ interface TreeProps {
   setIsHovering: Dispatch<SetStateAction<string>>;
   setFiles: Dispatch<SetStateAction<IFileFolder[]>>;
   onFileSelect: (file: IFileFolder) => void;
-  setOpenFiles: Dispatch<SetStateAction<Set<IFileFolder>>>;
+  setOpenFiles: Dispatch<SetStateAction<OpenFiles>>;
   projectId: string;
 }
 
@@ -116,9 +117,9 @@ const TreeItem: React.FC<TreeProps> = ({
   const handleFileClick = useCallback(() => {
     if (!item.isFolder) {
       setOpenFiles((prevOpenFiles) => {
-        const newOpenFiles = new Set(prevOpenFiles);
+        const newOpenFiles = new Set(prevOpenFiles.open);
         newOpenFiles.add(item);
-        return newOpenFiles;
+        return { ...prevOpenFiles, open: newOpenFiles };
       });
       onFileSelect(item);
     }
