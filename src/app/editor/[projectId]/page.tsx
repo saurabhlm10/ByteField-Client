@@ -10,6 +10,7 @@ import React, {
   FC,
   SetStateAction,
   useEffect,
+  useRef,
   useState,
 } from "react";
 
@@ -33,6 +34,28 @@ const Page: FC<PageProps> = ({ params }) => {
     active: null,
     open: new Set(),
   });
+  const openFilesRef = useRef(openFiles);
+
+  function saveOpenFilesToLocalStorage() {
+    return setInterval(() => {
+      const tempOpenFiles = {
+        active: openFilesRef.current.active,
+        open: Array.from(openFilesRef.current.open),
+      };
+      localStorage.setItem("openFiles", JSON.stringify(tempOpenFiles));
+    }, 5000);
+  }
+
+  const getOpenFilesFromLocalStorage = () => {
+    const rawOpenFiles = localStorage.getItem("openFiles");
+    if (rawOpenFiles) {
+      const openFiles = JSON.parse(rawOpenFiles);
+      const activeFiles = openFiles.active;
+      const openFilesSet: Set<IFileFolder> = new Set(openFiles.open);
+
+      setOpenFiles({ active: activeFiles, open: openFilesSet });
+    }
+  };
 
   const updateFileContentById = (fileId: string, newContent: string) => {
     setFiles((currentFiles) => {
@@ -82,8 +105,18 @@ const Page: FC<PageProps> = ({ params }) => {
   useEffect(() => {
     getProject(params.projectId);
 
-    return () => {};
+    const saveOpenFilesToLocalStorageInterval = saveOpenFilesToLocalStorage();
+
+    getOpenFilesFromLocalStorage();
+
+    return () => {
+      clearInterval(saveOpenFilesToLocalStorageInterval);
+    };
   }, []);
+
+  useEffect(() => {
+    openFilesRef.current = openFiles;
+  }, [openFiles]);
 
   return (
     <div className="container mx-auto px-4">
