@@ -12,7 +12,8 @@ interface TreeProps {
   isHovering: string;
   setIsHovering: Dispatch<SetStateAction<string>>;
   setFiles: Dispatch<SetStateAction<IFileFolder[]>>;
-  onFileSelect: (fileId: string, fileContent: string) => void;
+  onFileSelect: (file: IFileFolder) => void;
+  setOpenFiles: Dispatch<SetStateAction<Set<IFileFolder>>>;
   projectId: string;
 }
 
@@ -22,6 +23,7 @@ const TreeItem: React.FC<TreeProps> = ({
   setIsHovering,
   setFiles,
   onFileSelect,
+  setOpenFiles,
   projectId,
 }) => {
   const [isOpen, setIsOpen] = useState(false);
@@ -113,7 +115,12 @@ const TreeItem: React.FC<TreeProps> = ({
 
   const handleFileClick = useCallback(() => {
     if (!item.isFolder) {
-      onFileSelect(item.id, item.content || "// Write your code here");
+      setOpenFiles((prevOpenFiles) => {
+        const newOpenFiles = new Set(prevOpenFiles);
+        newOpenFiles.add(item);
+        return newOpenFiles;
+      });
+      onFileSelect(item);
     }
   }, [item, onFileSelect]);
 
@@ -185,6 +192,7 @@ const TreeItem: React.FC<TreeProps> = ({
               setIsHovering={setIsHovering}
               setFiles={setFiles}
               onFileSelect={onFileSelect}
+              setOpenFiles={setOpenFiles}
               projectId={projectId}
             />
           ))}

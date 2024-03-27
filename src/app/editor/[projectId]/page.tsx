@@ -3,8 +3,15 @@
 import axiosInstance from "@/axios";
 import CodeEditor from "@/components/CodeEditor";
 import FileFolderTree from "@/components/FileFolderTree";
+import Tabs from "@/components/Tabs";
 import { apiErrorHandler } from "@/utils/api-error-handler.util";
-import React, { FC, useEffect, useState } from "react";
+import React, {
+  Dispatch,
+  FC,
+  SetStateAction,
+  useEffect,
+  useState,
+} from "react";
 
 interface PageProps {
   params: {
@@ -12,105 +19,13 @@ interface PageProps {
   };
 }
 
-// const initialFiles = [
-//   {
-//     id: "1",
-//     name: "Folder 1",
-//     isFolder: true,
-//     parent: null,
-//     children: [
-//       {
-//         id: "1-2",
-//         name: "Folder 1-2",
-//         isFolder: true,
-//         parent: "1",
-//         children: [
-//           {
-//             id: "1-2-3",
-//             name: "Folder 1-2-3",
-//             isFolder: true,
-//             parent: "1-2",
-//             children: [
-//               {
-//                 id: "1-2-3-4",
-//                 name: "Folder 1-2-3-4",
-//                 isFolder: true,
-//                 parent: "1-2-3",
-//                 children: [
-//                   {
-//                     id: "1-2-3-4-5",
-//                     name: "Folder 1-2-3-4-5",
-//                     isFolder: true,
-//                     parent: "1-2-3-4",
-//                     children: [
-//                       {
-//                         id: "1-2-3-4-5-6",
-//                         name: "Folder 1-2-3-4-5-6",
-//                         isFolder: true,
-//                         parent: "1-2-3-4-5",
-//                         children: [
-//                           {
-//                             id: "1-2-3-4-5-6-7",
-//                             name: "Folder 1-2-3-4-5-6-7",
-//                             isFolder: true,
-//                             parent: "1-2-3-4-5-6",
-//                             children: [
-//                               {
-//                                 id: "1-2-3-4-5-6-7-8",
-//                                 name: "Folder 1-2-3-4-5-6-7-8",
-//                                 isFolder: true,
-//                                 parent: "1-2-3-4-5-6-7",
-//                                 children: [
-//                                   {
-//                                     id: "1-2-3-4-5-6-7-8-9",
-//                                     name: "Folder 1-2-3-4-5-6-7-8-9",
-//                                     isFolder: true,
-//                                     parent: "1-2-3-4-5-6-7-8",
-//                                     children: [
-//                                       {
-//                                         id: "1-2-3-4-5-6-7-8-9-10",
-//                                         name: "Folder 1-2-3-4-5-6-7-8-9-10",
-//                                         isFolder: true,
-//                                         parent: "1-2-3-4-5-6-7-8-9",
-//                                         children: [],
-//                                       },
-//                                     ],
-//                                   },
-//                                 ],
-//                               },
-//                             ],
-//                           },
-//                         ],
-//                       },
-//                     ],
-//                   },
-//                 ],
-//               },
-//             ],
-//           },
-//         ],
-//       },
-//       {
-//         id: "1-file",
-//         name: "File 1-file",
-//         isFolder: false,
-//         parent: "1",
-//         children: [],
-//         content: `function helloWorld() {
-//   console.log('Hello, world!');
-// }`,
-//       },
-//     ],
-//   },
-// ];
-
 const Page: FC<PageProps> = ({ params }) => {
   const [files, setFiles] = useState<IFileFolder[]>([]);
 
-  const [code, setCode] = useState("");
   const [name, setName] = useState("");
 
-  const [currentFileId, setCurrentFileId] = useState("");
+  const [activeFile, setActiveFile] = useState<IFileFolder | null>(null);
+  const [openFiles, setOpenFiles] = useState<Set<IFileFolder>>(new Set());
 
   const updateFileContentById = (fileId: string, newContent: string) => {
     setFiles((currentFiles) => {
@@ -128,10 +43,8 @@ const Page: FC<PageProps> = ({ params }) => {
       return updateContent(currentFiles);
     });
   };
-
-  const onFileSelect = (fileId: string, fileContent: string) => {
-    setCurrentFileId(fileId);
-    setCode(fileContent);
+  const onFileSelect = (file: IFileFolder) => {
+    setActiveFile(file);
   };
 
   const getProject = async (id: string) => {
@@ -149,9 +62,7 @@ const Page: FC<PageProps> = ({ params }) => {
   useEffect(() => {
     getProject(params.projectId);
 
-    return () => {
-      setCode("");
-    };
+    return () => {};
   }, []);
 
   return (
@@ -164,18 +75,24 @@ const Page: FC<PageProps> = ({ params }) => {
             items={files}
             setFiles={setFiles}
             onFileSelect={onFileSelect}
+            setOpenFiles={setOpenFiles}
             projectId={params.projectId}
           />
         </aside>
         <div className="flex-1">
-          {code && (
+          {activeFile?.content && (
             <CodeEditor
-              code={code}
-              setCode={setCode}
               projectId={params.projectId}
+              openFiles={openFiles}
+              setOpenFiles={setOpenFiles}
               updateFileContent={(newContent) =>
-                updateFileContentById(currentFileId, newContent)
+                updateFileContentById(activeFile.id, newContent)
               }
+              activeFile={activeFile as IFileFolder}
+              setActiveFile={
+                setActiveFile as Dispatch<SetStateAction<IFileFolder>>
+              }
+              onFileSelect={onFileSelect}
             />
           )}
         </div>

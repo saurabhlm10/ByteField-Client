@@ -4,9 +4,10 @@ import TreeItem from "./TreeItem";
 const FileFolderTree: React.FC<{
   items: IFileFolder[];
   setFiles: Dispatch<SetStateAction<IFileFolder[]>>;
-  onFileSelect: (fileId: string, fileContent: string) => void;
+  onFileSelect: (file: IFileFolder) => void;
+  setOpenFiles: Dispatch<SetStateAction<Set<IFileFolder>>>;
   projectId: string;
-}> = ({ items, setFiles, onFileSelect, projectId }) => {
+}> = ({ items, setFiles, onFileSelect, setOpenFiles, projectId }) => {
   const [isHovering, setIsHovering] = useState("");
   return (
     <div className="p-4">
@@ -18,6 +19,7 @@ const FileFolderTree: React.FC<{
           isHovering={isHovering}
           setIsHovering={setIsHovering}
           onFileSelect={onFileSelect}
+          setOpenFiles={setOpenFiles}
           projectId={projectId}
         />
       ))}

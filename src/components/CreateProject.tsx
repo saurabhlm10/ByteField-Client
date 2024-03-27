@@ -18,8 +18,6 @@ const CreateProject = () => {
       const response = await axiosInstance.post("/project", body);
 
       router.push(`/editor/${response.data.id}`);
-
-      console.log(response.data);
     } catch (error) {
       apiErrorHandler(error);
     }

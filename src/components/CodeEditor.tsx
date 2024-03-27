@@ -4,31 +4,53 @@ import Editor from "@monaco-editor/react";
 import axiosInstance from "@/axios";
 import { AxiosError } from "axios";
 import { apiErrorHandler } from "@/utils/api-error-handler.util";
+import Tabs from "./Tabs";
 
 interface PageProps {
-  code: string;
-  setCode: Dispatch<SetStateAction<string>>;
   projectId: string;
+  openFiles: Set<IFileFolder>;
+  setOpenFiles: Dispatch<SetStateAction<Set<IFileFolder>>>;
   updateFileContent: (content: string) => void;
+  activeFile: IFileFolder;
+  setActiveFile: Dispatch<SetStateAction<IFileFolder>>;
+  onFileSelect: (file: IFileFolder) => void;
 }
 
 const CodeEditor: React.FC<PageProps> = ({
-  code,
-  setCode,
   projectId,
+  openFiles,
+  setOpenFiles,
   updateFileContent,
+  activeFile,
+  setActiveFile,
+  onFileSelect,
 }) => {
   const [stdout, setStdout] = useState("");
   const [stderr, setStderr] = useState("");
 
   const handleEditorChange = (value: string | undefined) => {
-    setCode(value || "");
+    setActiveFile((prevActiveFile) => {
+      return { ...prevActiveFile, content: value || "" };
+    });
+
+    setOpenFiles((prevOpenFiles) => {
+      const newOpenFiles = new Set(prevOpenFiles);
+      newOpenFiles.forEach((file) => {
+        if (file.id === activeFile.id) {
+          file.content = value || "";
+        }
+      });
+      return newOpenFiles;
+    });
+
     updateFileContent(value || "");
   };
 
   const executeCode = async () => {
     try {
-      const response = await axiosInstance.post("/execute", { code });
+      const response = await axiosInstance.post("/execute", {
+        code: activeFile.content,
+      });
       setStdout(response.data || "No output");
       stderr && setStderr("");
     } catch (error: any) {
@@ -43,8 +65,8 @@ const CodeEditor: React.FC<PageProps> = ({
 
   const saveCode = async () => {
     try {
-      const response = await axiosInstance.put("/snippet/" + projectId, {
-        code,
+      const response = await axiosInstance.put("/file-folder/" + projectId, {
+        code: activeFile.content,
       });
     } catch (error) {
       apiErrorHandler(error);
@@ -70,11 +92,20 @@ const CodeEditor: React.FC<PageProps> = ({
         </div>
         <div className="flex flex-col md:flex-row">
           <div className="md:w-2/3 mb-4 md:mb-0 md:mr-4">
+            <Tabs
+              fileTabs={openFiles}
+              setOpenFiles={setOpenFiles}
+              activeFile={activeFile}
+              setActiveFile={
+                setActiveFile as Dispatch<SetStateAction<IFileFolder | null>>
+              }
+              onFileSelect={onFileSelect}
+            />
             <Editor
               height="70vh"
-              value={code}
+              value={activeFile.content}
               defaultLanguage="javascript"
-              defaultValue={code}
+              defaultValue={activeFile.content}
               onChange={handleEditorChange}
               theme="vs-dark"
               className="rounded-md shadow-md"

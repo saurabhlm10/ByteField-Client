@@ -10,7 +10,6 @@ const Page = () => {
   const getAllSnippets = async () => {
     try {
       const response = await axiosInstance.get("/snippet");
-      console.log(response.data);
 
       setSnippets(response.data);
     } catch (error) {
