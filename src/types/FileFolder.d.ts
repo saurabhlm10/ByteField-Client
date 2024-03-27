@@ -11,4 +11,5 @@ interface IFileFolder {
   projectId?: number;
   project?: Project;
   rootProject?: Project;
+  isSaved?: boolean;
 }

@@ -30,7 +30,11 @@ const CodeEditor: React.FC<PageProps> = ({
 
   const handleEditorChange = (value: string | undefined) => {
     setActiveFile((prevActiveFile) => {
-      return { ...prevActiveFile, content: value || "" };
+      return {
+        ...prevActiveFile,
+        content: value || "",
+        isSaved: prevActiveFile.content !== value,
+      };
     });
 
     setOpenFiles((prevOpenFiles) => {
@@ -38,6 +42,7 @@ const CodeEditor: React.FC<PageProps> = ({
       newOpenFiles.forEach((file) => {
         if (file.id === activeFile.id) {
           file.content = value || "";
+          file.isSaved = file.content !== value;
         }
       });
       return newOpenFiles;
@@ -65,14 +70,42 @@ const CodeEditor: React.FC<PageProps> = ({
 
   const saveCode = async () => {
     try {
-      const response = await axiosInstance.put("/file-folder/" + projectId, {
-        code: activeFile.content,
-      });
+      const response = await axiosInstance.put(
+        "/file-folder/" + projectId + "/" + activeFile.id,
+        {
+          content: activeFile.content,
+        }
+      );
     } catch (error) {
       apiErrorHandler(error);
     }
   };
 
+  const handleKeyDown = (event: React.KeyboardEvent) => {
+    // Check if CTRL (or Command on Mac) and 'S' keys are pressed together
+    if ((event.ctrlKey || event.metaKey) && event.key === "s") {
+      event.preventDefault(); // Prevent the browser's default save dialog
+
+      setActiveFile((prevActiveFile) => {
+        setOpenFiles((prevOpenFiles) => {
+          const newOpenFiles = new Set(prevOpenFiles);
+          newOpenFiles.forEach((file) => {
+            if (file.id === prevActiveFile.id) {
+              file.isSaved = true;
+            }
+          });
+          return newOpenFiles;
+        });
+
+        return {
+          ...prevActiveFile,
+          isSaved: true,
+        };
+      });
+
+      saveCode();
+    }
+  };
   return (
     <div className="bg-gray-900 text-white min-h-screen flex flex-col">
       <div className="container mx-auto py-8">
@@ -91,7 +124,10 @@ const CodeEditor: React.FC<PageProps> = ({
           </button>
         </div>
         <div className="flex flex-col md:flex-row">
-          <div className="md:w-2/3 mb-4 md:mb-0 md:mr-4">
+          <div
+            className="md:w-2/3 mb-4 md:mb-0 md:mr-4"
+            onKeyDown={handleKeyDown}
+          >
             <Tabs
               fileTabs={openFiles}
               setOpenFiles={setOpenFiles}

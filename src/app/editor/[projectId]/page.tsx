@@ -48,12 +48,25 @@ const Page: FC<PageProps> = ({ params }) => {
   };
 
   const getProject = async (id: string) => {
+    const addIsSavedKey = (items: IFileFolder[]): IFileFolder[] => {
+      return items.map((file) => {
+        if (file.isFolder) {
+          return { ...file, children: addIsSavedKey(file.children) };
+        } else {
+          file.isSaved = true;
+          return file;
+        }
+      });
+    };
+
     try {
       const response = await axiosInstance.get("/project/" + id);
 
       setName(response.data.name);
 
-      setFiles([response.data.rootFolder] as IFileFolder[]);
+      const projectFiles = addIsSavedKey(response.data.rootFolder.children);
+
+      setFiles(projectFiles);
     } catch (error) {
       apiErrorHandler(error);
     }
