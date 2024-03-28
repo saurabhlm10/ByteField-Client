@@ -13,6 +13,7 @@ import React, {
   useRef,
   useState,
 } from "react";
+import lodash from "lodash";
 
 interface PageProps {
   params: {
@@ -42,6 +43,14 @@ const Page: FC<PageProps> = ({ params }) => {
         active: openFilesRef.current.active,
         open: Array.from(openFilesRef.current.open),
       };
+      const currentOpenFiles = JSON.parse(
+        localStorage.getItem("openFiles") || "{}"
+      );
+
+      if (lodash.isEqual(tempOpenFiles, currentOpenFiles)) {
+        return;
+      }
+
       localStorage.setItem("openFiles", JSON.stringify(tempOpenFiles));
     }, 5000);
   }
