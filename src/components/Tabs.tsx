@@ -1,19 +1,14 @@
-import { OpenFiles } from "@/app/editor/[projectId]/page";
 import React, { Dispatch, FC, SetStateAction } from "react";
 
 interface PageProps {
   fileTabs: Set<IFileFolder>;
-  openFiles: OpenFiles;
-  setOpenFiles: Dispatch<SetStateAction<OpenFiles>>;
+  files: Files;
+  setFiles: Dispatch<SetStateAction<Files>>;
   onFileSelect: (file: IFileFolder) => void;
 }
 
-const Tabs: FC<PageProps> = ({
-  fileTabs,
-  openFiles,
-  setOpenFiles,
-  onFileSelect,
-}) => {
+const Tabs: FC<PageProps> = ({ fileTabs, files, setFiles, onFileSelect }) => {
+  console.log(fileTabs);
   return (
     <div className="flex w-full overflow-x-scroll">
       {Array.from(fileTabs).map((tab, index) => {
@@ -22,7 +17,7 @@ const Tabs: FC<PageProps> = ({
             key={index}
             className={`flex flex-row cursor-pointer items-center gap-2 text-sm px-2 py-1 border-t-[1px]  border-b-0" +
               ${
-                tab.id === openFiles.active?.id
+                tab.id === files.active?.id
                   ? "bg-[#1E1E1E] border-t-blue-300"
                   : "bg-slate-800 border-t-transparent"
               }`}
@@ -41,15 +36,15 @@ const Tabs: FC<PageProps> = ({
                 <p
                   className="leading-3"
                   onClick={() => {
-                    setOpenFiles((prevOpenFiles) => {
-                      const newOpenFiles = new Set(prevOpenFiles.open);
+                    setFiles((prevFiles) => {
+                      const newOpenFiles = new Set(prevFiles.open);
                       newOpenFiles.delete(tab);
                       const activeFile =
                         newOpenFiles.size > 0
                           ? Array.from(newOpenFiles)[0]
                           : null;
                       return {
-                        ...prevOpenFiles,
+                        ...prevFiles,
                         active: activeFile,
                         open: newOpenFiles,
                       };

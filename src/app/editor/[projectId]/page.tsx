@@ -21,21 +21,15 @@ interface PageProps {
   };
 }
 
-export interface OpenFiles {
-  active: IFileFolder | null;
-  open: Set<IFileFolder>;
-}
-
 const Page: FC<PageProps> = ({ params }) => {
-  const [files, setFiles] = useState<IFileFolder[]>([]);
-
   const [name, setName] = useState("");
 
-  const [openFiles, setOpenFiles] = useState<OpenFiles>({
+  const [files, setFiles] = useState<Files>({
     active: null,
     open: new Set(),
+    all: [],
   });
-  const openFilesRef = useRef(openFiles);
+  const openFilesRef = useRef({ active: files.active, open: files.open });
 
   function saveOpenFilesToLocalStorage() {
     return setInterval(() => {
@@ -62,7 +56,11 @@ const Page: FC<PageProps> = ({ params }) => {
       const activeFiles = openFiles.active;
       const openFilesSet: Set<IFileFolder> = new Set(openFiles.open);
 
-      setOpenFiles({ active: activeFiles, open: openFilesSet });
+      setFiles((prevFiles) => ({
+        ...prevFiles,
+        active: activeFiles,
+        open: openFilesSet,
+      }));
     }
   };
 
@@ -71,19 +69,23 @@ const Page: FC<PageProps> = ({ params }) => {
       const updateContent = (items: IFileFolder[]): IFileFolder[] => {
         return items.map((file) => {
           if (file.id === fileId) {
+            const updatedFile = { ...file, content: newContent };
             return { ...file, content: newContent };
           } else if (file.isFolder) {
             return { ...file, children: updateContent(file.children) };
           } else {
-            return file;
+            return { ...file };
           }
         });
       };
-      return updateContent(currentFiles);
+      return {
+        ...currentFiles,
+        all: updateContent(currentFiles.all),
+      };
     });
   };
   const onFileSelect = (file: IFileFolder) => {
-    setOpenFiles((prevOpenFiles) => ({ ...prevOpenFiles, active: file }));
+    setFiles((prevFiles) => ({ ...prevFiles, active: file }));
   };
 
   const getProject = async (id: string) => {
@@ -105,18 +107,17 @@ const Page: FC<PageProps> = ({ params }) => {
 
       const projectFiles = addIsSavedKey(response.data.rootFolder.children);
 
-      setFiles(projectFiles);
+      setFiles((prevFiles) => ({ ...prevFiles, all: projectFiles }));
     } catch (error) {
       apiErrorHandler(error);
     }
   };
 
   useEffect(() => {
-    getProject(params.projectId);
-
     const saveOpenFilesToLocalStorageInterval = saveOpenFilesToLocalStorage();
-
-    getOpenFilesFromLocalStorage();
+    getProject(params.projectId).then(() => {
+      getOpenFilesFromLocalStorage();
+    });
 
     return () => {
       clearInterval(saveOpenFilesToLocalStorageInterval);
@@ -124,8 +125,8 @@ const Page: FC<PageProps> = ({ params }) => {
   }, []);
 
   useEffect(() => {
-    openFilesRef.current = openFiles;
-  }, [openFiles]);
+    openFilesRef.current = { active: files.active, open: files.open };
+  }, [files]);
 
   return (
     <div className="container mx-auto px-4">
@@ -137,21 +138,17 @@ const Page: FC<PageProps> = ({ params }) => {
             items={files}
             setFiles={setFiles}
             onFileSelect={onFileSelect}
-            setOpenFiles={setOpenFiles}
             projectId={params.projectId}
           />
         </aside>
         <div className="flex-1">
-          {openFiles.active?.content && (
+          {files.active?.content && (
             <CodeEditor
               projectId={params.projectId}
-              openFiles={openFiles}
-              setOpenFiles={setOpenFiles}
+              files={files}
+              setFiles={setFiles}
               updateFileContent={(newContent) =>
-                updateFileContentById(
-                  openFiles.active?.id as string,
-                  newContent
-                )
+                updateFileContentById(files.active?.id as string, newContent)
               }
               onFileSelect={onFileSelect}
             />

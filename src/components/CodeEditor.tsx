@@ -5,20 +5,19 @@ import axiosInstance from "@/axios";
 import { AxiosError } from "axios";
 import { apiErrorHandler } from "@/utils/api-error-handler.util";
 import Tabs from "./Tabs";
-import { OpenFiles } from "@/app/editor/[projectId]/page";
 
 interface PageProps {
   projectId: string;
-  openFiles: OpenFiles;
-  setOpenFiles: Dispatch<SetStateAction<OpenFiles>>;
+  files: Files;
+  setFiles: Dispatch<SetStateAction<Files>>;
   updateFileContent: (content: string) => void;
   onFileSelect: (file: IFileFolder) => void;
 }
 
 const CodeEditor: React.FC<PageProps> = ({
   projectId,
-  openFiles,
-  setOpenFiles,
+  files,
+  setFiles,
   updateFileContent,
   onFileSelect,
 }) => {
@@ -26,22 +25,22 @@ const CodeEditor: React.FC<PageProps> = ({
   const [stderr, setStderr] = useState("");
 
   const handleEditorChange = (value: string | undefined) => {
-    setOpenFiles((prevOpenFiles) => {
-      const newOpenFiles = new Set(prevOpenFiles.open);
+    setFiles((prevFiles) => {
+      const newOpenFiles = new Set(prevFiles.open);
 
-      const activeFile = prevOpenFiles.active;
+      const activeFile = prevFiles.active;
 
       newOpenFiles.forEach((file) => {
-        if (file.id === openFiles.active?.id) {
+        if (file.id === files.active?.id) {
           file.content = value || "";
           file.isSaved = file.content !== value;
         }
       });
 
-      if (!activeFile) return prevOpenFiles;
+      if (!activeFile) return prevFiles;
 
       return {
-        ...prevOpenFiles,
+        ...prevFiles,
         active: activeFile,
         open: newOpenFiles,
       };
@@ -53,7 +52,7 @@ const CodeEditor: React.FC<PageProps> = ({
   const executeCode = async () => {
     try {
       const response = await axiosInstance.post("/execute", {
-        code: openFiles.active?.content,
+        code: files.active?.content,
       });
       setStdout(response.data || "No output");
       stderr && setStderr("");
@@ -70,9 +69,9 @@ const CodeEditor: React.FC<PageProps> = ({
   const saveCode = async () => {
     try {
       const response = await axiosInstance.put(
-        "/file-folder/" + projectId + "/" + openFiles.active?.id,
+        "/file-folder/" + projectId + "/" + files.active?.id,
         {
-          content: openFiles.active?.content,
+          content: files.active?.content,
         }
       );
     } catch (error) {
@@ -85,14 +84,14 @@ const CodeEditor: React.FC<PageProps> = ({
     if ((event.ctrlKey || event.metaKey) && event.key === "s") {
       event.preventDefault(); // Prevent the browser's default save dialog
 
-      setOpenFiles((prevOpenFiles) => {
-        const newOpenFiles = new Set(prevOpenFiles.open);
+      setFiles((prevFiles) => {
+        const newOpenFiles = new Set(prevFiles.open);
         newOpenFiles.forEach((file) => {
-          if (file.id === prevOpenFiles.active?.id) {
+          if (file.id === prevFiles.active?.id) {
             file.isSaved = true;
           }
         });
-        return { ...prevOpenFiles, open: newOpenFiles };
+        return { ...prevFiles, open: newOpenFiles };
       });
 
       saveCode();
@@ -121,16 +120,16 @@ const CodeEditor: React.FC<PageProps> = ({
             onKeyDown={handleKeyDown}
           >
             <Tabs
-              fileTabs={openFiles.open}
-              openFiles={openFiles}
-              setOpenFiles={setOpenFiles}
+              files={files}
+              fileTabs={files.open}
+              setFiles={setFiles}
               onFileSelect={onFileSelect}
             />
             <Editor
               height="70vh"
-              value={openFiles.active?.content}
+              value={files.active?.content}
               defaultLanguage="javascript"
-              defaultValue={openFiles.active?.content}
+              defaultValue={files.active?.content}
               onChange={handleEditorChange}
               theme="vs-dark"
               className="rounded-md shadow-md"

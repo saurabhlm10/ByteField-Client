@@ -1,18 +1,16 @@
 import { Dispatch, SetStateAction, useState } from "react";
 import TreeItem from "./TreeItem";
-import { OpenFiles } from "@/app/editor/[projectId]/page";
 
 const FileFolderTree: React.FC<{
-  items: IFileFolder[];
-  setFiles: Dispatch<SetStateAction<IFileFolder[]>>;
+  items: Files;
   onFileSelect: (file: IFileFolder) => void;
-  setOpenFiles: Dispatch<SetStateAction<OpenFiles>>;
+  setFiles: Dispatch<SetStateAction<Files>>;
   projectId: string;
-}> = ({ items, setFiles, onFileSelect, setOpenFiles, projectId }) => {
+}> = ({ items, setFiles, onFileSelect, projectId }) => {
   const [isHovering, setIsHovering] = useState("");
   return (
     <div className="p-4">
-      {items.map((item) => (
+      {items.all.map((item) => (
         <TreeItem
           key={item.id}
           item={item}
@@ -20,7 +18,6 @@ const FileFolderTree: React.FC<{
           isHovering={isHovering}
           setIsHovering={setIsHovering}
           onFileSelect={onFileSelect}
-          setOpenFiles={setOpenFiles}
           projectId={projectId}
         />
       ))}

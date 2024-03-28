@@ -1,4 +1,3 @@
-import { OpenFiles } from "@/app/editor/[projectId]/page";
 import axiosInstance from "@/axios";
 import {
   Dispatch,
@@ -12,9 +11,8 @@ interface TreeProps {
   item: IFileFolder;
   isHovering: string;
   setIsHovering: Dispatch<SetStateAction<string>>;
-  setFiles: Dispatch<SetStateAction<IFileFolder[]>>;
+  setFiles: Dispatch<SetStateAction<Files>>;
   onFileSelect: (file: IFileFolder) => void;
-  setOpenFiles: Dispatch<SetStateAction<OpenFiles>>;
   projectId: string;
 }
 
@@ -24,7 +22,6 @@ const TreeItem: React.FC<TreeProps> = ({
   setIsHovering,
   setFiles,
   onFileSelect,
-  setOpenFiles,
   projectId,
 }) => {
   const [isOpen, setIsOpen] = useState(false);
@@ -111,15 +108,29 @@ const TreeItem: React.FC<TreeProps> = ({
       });
     };
 
-    setFiles((currentFiles) => updateTree(currentFiles));
+    setFiles((currentFiles) => ({
+      ...currentFiles,
+      all: updateTree(currentFiles.all),
+    }));
   };
 
   const handleFileClick = useCallback(() => {
     if (!item.isFolder) {
-      setOpenFiles((prevOpenFiles) => {
-        const newOpenFiles = new Set(prevOpenFiles.open);
+      setFiles((prevFiles) => {
+        let duplicate = false;
+
+        Array.from(prevFiles.open).forEach((file) => {
+          if (file.id === item.id) {
+            console.log("SA<EE");
+            return (duplicate = true);
+          }
+        });
+
+        if (duplicate) return prevFiles;
+
+        const newOpenFiles = new Set(prevFiles.open);
         newOpenFiles.add(item);
-        return { ...prevOpenFiles, open: newOpenFiles };
+        return { ...prevFiles, open: newOpenFiles };
       });
       onFileSelect(item);
     }
@@ -193,7 +204,6 @@ const TreeItem: React.FC<TreeProps> = ({
               setIsHovering={setIsHovering}
               setFiles={setFiles}
               onFileSelect={onFileSelect}
-              setOpenFiles={setOpenFiles}
               projectId={projectId}
             />
           ))}
