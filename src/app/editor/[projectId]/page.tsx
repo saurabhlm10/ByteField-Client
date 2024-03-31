@@ -151,6 +151,7 @@ const Page: FC<PageProps> = ({ params }) => {
                 updateFileContentById(files.active?.id as string, newContent)
               }
               onFileSelect={onFileSelect}
+              name={name}
             />
           )}
         </div>

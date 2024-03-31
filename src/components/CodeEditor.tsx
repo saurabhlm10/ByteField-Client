@@ -12,6 +12,7 @@ interface PageProps {
   setFiles: Dispatch<SetStateAction<Files>>;
   updateFileContent: (content: string) => void;
   onFileSelect: (file: IFileFolder) => void;
+  name: string;
 }
 
 const CodeEditor: React.FC<PageProps> = ({
@@ -20,6 +21,7 @@ const CodeEditor: React.FC<PageProps> = ({
   setFiles,
   updateFileContent,
   onFileSelect,
+  name,
 }) => {
   const [stdout, setStdout] = useState("");
   const [stderr, setStderr] = useState("");
@@ -52,8 +54,13 @@ const CodeEditor: React.FC<PageProps> = ({
   const executeCode = async () => {
     try {
       const response = await axiosInstance.post("/execute", {
-        code: files.active?.content,
+        fileStructure: {
+          name,
+          isFolder: true,
+          children: files.all,
+        },
       });
+
       setStdout(response.data || "No output");
       stderr && setStderr("");
     } catch (error: any) {
@@ -128,7 +135,9 @@ const CodeEditor: React.FC<PageProps> = ({
             <Editor
               height="70vh"
               value={files.active?.content}
-              defaultLanguage="javascript"
+              language={
+                files.active?.name.endsWith(".json") ? "json" : "javascript"
+              }
               defaultValue={files.active?.content}
               onChange={handleEditorChange}
               theme="vs-dark"
