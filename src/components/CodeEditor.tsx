@@ -5,6 +5,9 @@ import axiosInstance from "@/axios";
 import { AxiosError } from "axios";
 import { apiErrorHandler } from "@/utils/api-error-handler.util";
 import Tabs from "./Tabs";
+import { io } from "socket.io-client";
+
+const socket = io("http://localhost:4000");
 
 interface PageProps {
   projectId: string;
@@ -25,6 +28,18 @@ const CodeEditor: React.FC<PageProps> = ({
 }) => {
   const [stdout, setStdout] = useState("");
   const [stderr, setStderr] = useState("");
+  const [logs, setLogs] = useState<string[]>([]);
+
+  useEffect(() => {
+    socket.on("log", (log) => {
+      console.log(log);
+      setLogs((prevLogs) => [...prevLogs, log]);
+    });
+
+    return () => {
+      socket.off("log");
+    };
+  }, []);
 
   const handleEditorChange = (value: string | undefined) => {
     setFiles((prevFiles) => {
@@ -146,8 +161,13 @@ const CodeEditor: React.FC<PageProps> = ({
           </div>
           <div className="md:w-1/3 bg-gray-800 text-white p-4 rounded-md shadow-md overflow-auto">
             <h3 className="text-lg font-bold mb-2">Terminal</h3>
-            <pre className="whitespace-pre-wrap">{stdout}</pre>
-            <pre className="text-red-500 whitespace-pre-wrap">{stderr}</pre>
+            {logs.map((log, i) => (
+              <pre key={i} className="whitespace-pre-wrap">
+                {log}
+              </pre>
+            ))}
+            {/* <pre className="whitespace-pre-wrap">{stdout}</pre>
+            <pre className="text-red-500 whitespace-pre-wrap">{stderr}</pre> */}
           </div>
         </div>
       </div>
