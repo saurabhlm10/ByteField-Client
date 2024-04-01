@@ -14,6 +14,7 @@ import React, {
   useState,
 } from "react";
 import lodash from "lodash";
+import { saveOpenFilesToLocalStorage } from "@/utils/saveOpenFilesToLocalStorage.helper";
 
 interface PageProps {
   params: {
@@ -31,21 +32,9 @@ const Page: FC<PageProps> = ({ params }) => {
   });
   const openFilesRef = useRef({ active: files.active, open: files.open });
 
-  function saveOpenFilesToLocalStorage() {
+  function saveOpenFilesToLocalStorageInterval() {
     return setInterval(() => {
-      const tempOpenFiles = {
-        active: openFilesRef.current.active,
-        open: Array.from(openFilesRef.current.open),
-      };
-      const currentOpenFiles = JSON.parse(
-        localStorage.getItem("openFiles") || "{}"
-      );
-
-      if (lodash.isEqual(tempOpenFiles, currentOpenFiles)) {
-        return;
-      }
-
-      localStorage.setItem("openFiles", JSON.stringify(tempOpenFiles));
+      saveOpenFilesToLocalStorage(openFilesRef);
     }, 5000);
   }
 
@@ -114,13 +103,14 @@ const Page: FC<PageProps> = ({ params }) => {
   };
 
   useEffect(() => {
-    const saveOpenFilesToLocalStorageInterval = saveOpenFilesToLocalStorage();
+    const saveOpenFilesToLocalStorageIntervalReference =
+      saveOpenFilesToLocalStorageInterval();
     getProject(params.projectId).then(() => {
       getOpenFilesFromLocalStorage();
     });
 
     return () => {
-      clearInterval(saveOpenFilesToLocalStorageInterval);
+      clearInterval(saveOpenFilesToLocalStorageIntervalReference);
     };
   }, []);
 
@@ -152,6 +142,7 @@ const Page: FC<PageProps> = ({ params }) => {
               }
               onFileSelect={onFileSelect}
               name={name}
+              openFilesRef={openFilesRef}
             />
           )}
         </div>

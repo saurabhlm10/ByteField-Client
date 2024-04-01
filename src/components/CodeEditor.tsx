@@ -6,6 +6,10 @@ import { AxiosError } from "axios";
 import { apiErrorHandler } from "@/utils/api-error-handler.util";
 import Tabs from "./Tabs";
 import { io } from "socket.io-client";
+import {
+  OpenFilesRef,
+  saveOpenFilesToLocalStorage,
+} from "@/utils/saveOpenFilesToLocalStorage.helper";
 
 const socket = io("http://localhost:4000");
 
@@ -16,6 +20,7 @@ interface PageProps {
   updateFileContent: (content: string) => void;
   onFileSelect: (file: IFileFolder) => void;
   name: string;
+  openFilesRef: React.RefObject<OpenFilesRef>;
 }
 
 const CodeEditor: React.FC<PageProps> = ({
@@ -25,6 +30,7 @@ const CodeEditor: React.FC<PageProps> = ({
   updateFileContent,
   onFileSelect,
   name,
+  openFilesRef,
 }) => {
   const [stdout, setStdout] = useState("");
   const [stderr, setStderr] = useState("");
@@ -49,10 +55,15 @@ const CodeEditor: React.FC<PageProps> = ({
     setFiles((prevFiles) => {
       const newOpenFiles = new Set(prevFiles.open);
 
-      const activeFile = prevFiles.active;
+      const activeFile = prevFiles.active as IFileFolder;
 
+      // Update Active File
+      activeFile.content = value;
+      activeFile.isSaved = activeFile.content !== value;
+
+      // Update Open Files
       newOpenFiles.forEach((file) => {
-        if (file.id === files.active?.id) {
+        if (file.id === activeFile.id) {
           file.content = value || "";
           file.isSaved = file.content !== value;
         }
@@ -96,6 +107,30 @@ const CodeEditor: React.FC<PageProps> = ({
 
   const saveCode = async () => {
     setLogs([]);
+    setFiles((prevFiles) => {
+      const newOpenFiles = new Set(prevFiles.open);
+
+      const activeFile = prevFiles.active as IFileFolder;
+
+      // Update Active File
+      activeFile.isSaved = true;
+
+      // Update Open Files
+      newOpenFiles.forEach((file) => {
+        if (file.id === activeFile.id) {
+          file.isSaved = true;
+        }
+      });
+
+      if (!activeFile) return prevFiles;
+
+      return {
+        ...prevFiles,
+        active: activeFile,
+        open: newOpenFiles,
+      };
+    });
+    saveOpenFilesToLocalStorage(openFilesRef);
     try {
       const updateFileInDBPromise = axiosInstance.put(
         "/file-folder/" + projectId + "/" + files.active?.id,
@@ -113,7 +148,7 @@ const CodeEditor: React.FC<PageProps> = ({
         },
       });
 
-      await Promise.all([updateFileContent, executeNewCodePromise]);
+      await Promise.all([updateFileInDBPromise, executeNewCodePromise]);
     } catch (error) {
       apiErrorHandler(error);
     }
