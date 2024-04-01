@@ -75,6 +75,7 @@ const CodeEditor: React.FC<PageProps> = ({
     try {
       const response = await axiosInstance.post("/execute", {
         fileStructure: {
+          id: projectId,
           name,
           isFolder: true,
           children: files.all,
@@ -94,13 +95,25 @@ const CodeEditor: React.FC<PageProps> = ({
   };
 
   const saveCode = async () => {
+    setLogs([]);
     try {
-      const response = await axiosInstance.put(
+      const updateFileInDBPromise = axiosInstance.put(
         "/file-folder/" + projectId + "/" + files.active?.id,
         {
           content: files.active?.content,
         }
       );
+
+      const executeNewCodePromise = await axiosInstance.put("/execute", {
+        fileStructure: {
+          id: projectId,
+          name,
+          isFolder: true,
+          children: files.all,
+        },
+      });
+
+      await Promise.all([updateFileContent, executeNewCodePromise]);
     } catch (error) {
       apiErrorHandler(error);
     }
@@ -131,6 +144,7 @@ const CodeEditor: React.FC<PageProps> = ({
           <div className="mx-auto flex justify-center gap-4">
             <button
               onClick={executeCode}
+              disabled={outputUrl ? true : false}
               className="block bg-green-500 hover:bg-green-700 text-white font-bold py-2 px-4 rounded-md shadow-md mb-4"
             >
               Run Code
