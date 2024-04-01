@@ -29,11 +29,15 @@ const CodeEditor: React.FC<PageProps> = ({
   const [stdout, setStdout] = useState("");
   const [stderr, setStderr] = useState("");
   const [logs, setLogs] = useState<string[]>([]);
+  const [outputUrl, setOutputUrl] = useState("");
 
   useEffect(() => {
     socket.on("log", (log) => {
-      console.log(log);
       setLogs((prevLogs) => [...prevLogs, log]);
+    });
+
+    socket.on("port", (port: string) => {
+      setOutputUrl(`http://localhost:${port}`);
     });
 
     return () => {
@@ -67,6 +71,7 @@ const CodeEditor: React.FC<PageProps> = ({
   };
 
   const executeCode = async () => {
+    setLogs([]);
     try {
       const response = await axiosInstance.post("/execute", {
         fileStructure: {
@@ -122,19 +127,30 @@ const CodeEditor: React.FC<PageProps> = ({
   return (
     <div className="bg-gray-900 text-white min-h-screen flex flex-col">
       <div className="container mx-auto py-8">
-        <div className="mx-auto flex justify-center gap-4">
-          <button
-            onClick={executeCode}
-            className="block bg-green-500 hover:bg-green-700 text-white font-bold py-2 px-4 rounded-md shadow-md mb-4"
-          >
-            Run Code
-          </button>
-          <button
-            onClick={saveCode}
-            className="block bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-md shadow-md mb-4"
-          >
-            Save Code
-          </button>
+        <div>
+          <div className="mx-auto flex justify-center gap-4">
+            <button
+              onClick={executeCode}
+              className="block bg-green-500 hover:bg-green-700 text-white font-bold py-2 px-4 rounded-md shadow-md mb-4"
+            >
+              Run Code
+            </button>
+            <button
+              onClick={saveCode}
+              className="block bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-md shadow-md mb-4"
+            >
+              Save Code
+            </button>
+          </div>
+          {outputUrl && (
+            <div>
+              See The Output:{" "}
+              <a href={outputUrl} target="_blank" className="underline">
+                {outputUrl}
+              </a>
+              &nbsp;🔗
+            </div>
+          )}
         </div>
         <div className="flex flex-col md:flex-row">
           <div
